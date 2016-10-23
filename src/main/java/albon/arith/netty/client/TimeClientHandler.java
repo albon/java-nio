@@ -39,6 +39,10 @@ public class TimeClientHandler extends ChannelHandlerAdapter {
         buf.readBytes(req);
 
         System.out.println("now is: " + new String(req, "UTF-8") + ", counter: " + counter++);
+
+        if (counter > 99) {
+            ctx.close();
+        }
     }
 
     @Override
