@@ -32,9 +32,15 @@ public class TimeServerHandler extends ChannelHandlerAdapter {
         ctx.write(resp);
     }
 
+    /**
+     * 读完一批次数据，就会调用一次 channelReadComplete
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         System.out.println("channelReadComplete");
+        // flush 之后，之前 write 的数据，才会发送出去
         ctx.flush();
     }
 
