@@ -1,4 +1,4 @@
-package albon.arith.compiler;
+package albon.arith.compiler.basic;
 
 import javax.tools.SimpleJavaFileObject;
 import java.io.IOException;

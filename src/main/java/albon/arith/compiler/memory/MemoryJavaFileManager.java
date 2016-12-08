@@ -1,4 +1,4 @@
-package albon.arith.compiler;
+package albon.arith.compiler.memory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FilterOutputStream;
@@ -62,7 +62,7 @@ public class MemoryJavaFileManager extends ForwardingJavaFileManager<JavaFileMan
         final String code;
 
         MemoryInputJavaFileObject(String name, String code) {
-            super(URI.create("string:///" + name), Kind.SOURCE);
+            super(URI.create("string:///" + name + Kind.SOURCE.extension), Kind.SOURCE);
             this.code = code;
         }
 
