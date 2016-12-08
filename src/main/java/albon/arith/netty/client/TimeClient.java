@@ -1,5 +1,7 @@
 package albon.arith.netty.client;
 
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -9,6 +11,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.FixedLengthFrameDecoder;
+
+import java.util.List;
 
 /**
  * @author albon
@@ -21,6 +25,13 @@ public class TimeClient {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 
         try {
+            List<VirtualMachineDescriptor> list = VirtualMachine.list();
+            for (VirtualMachineDescriptor descriptor : list) {
+                System.out.println(descriptor.displayName());
+            }
+
+            System.out.println("vm: " + list.size());
+
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)

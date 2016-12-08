@@ -10,6 +10,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by albon on 16/12/7.
@@ -19,41 +21,51 @@ public class CompilerAPITest {
     public static void main(String[] args) throws IOException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, null);
+        MemoryJavaFileManager manager = new MemoryJavaFileManager(standardFileManager);
 
         JavaFileObject fileObject = buildTestFile();
         Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(fileObject);
 
-        JavaCompiler.CompilationTask compilerTask = compiler.getTask(null, standardFileManager, null, null, null,
+        DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<JavaFileObject>();
+
+        JavaCompiler.CompilationTask compilerTask = compiler.getTask(null, manager, collector, null, null,
                 compilationUnits);
         Boolean result = compilerTask.call();
         System.out.println("compilerTask.call = " + result);
-        standardFileManager.close();
 
-        reflectTest();
+        if (result.equals(Boolean.FALSE)) {
+            List<Diagnostic<? extends JavaFileObject>> diagnostics = collector.getDiagnostics();
+            System.out.println("diagnostics.size -> " + diagnostics.size());
+            for (Diagnostic<? extends JavaFileObject> d : diagnostics) {
+                System.out.println("Line Number->" + d.getLineNumber());
+                System.out.println("Message->" + d.getMessage(Locale.ENGLISH));
+                System.out.println("Source" + d.getCode());
+                System.out.println("\n");
+            }
+            return;
+        }
+
+        Map<String, byte[]> classBytes = manager.getClassBytes();
+
+        MemoryClassLoader classLoader = new MemoryClassLoader(classBytes);
+
+        reflectTest(classLoader);
+
+        standardFileManager.close();
     }
 
-    private static void reflectTest() {
+    private static void reflectTest(MemoryClassLoader classLoader) {
         try {
-//            Class<?> aClass = Thread.currentThread().getContextClassLoader().loadClass("Test");
-            URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new URL("file:/Users/albon/GitHub/java-nio/")},
-                    Thread.currentThread().getContextClassLoader());
-            Class<?> aClass = urlClassLoader.loadClass("Test");
+            String classPath = "file:" + System.getProperty("user.dir") + "/";
+//            URLClassLoader classLoader = new URLClassLoader(new URL[]{new URL(classPath)},
+//                    Thread.currentThread().getContextClassLoader());
+            Class<?> aClass = classLoader.loadClass("Test");
             Object test = aClass.newInstance();
             Method method = aClass.getMethod("hello");
 
             Object result = method.invoke(test);
             System.out.println("invoke result = " + result);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -63,7 +75,7 @@ public class CompilerAPITest {
                 "public class Test {\n" +
                 "\n" +
                 "    public String hello() {\n" +
-                "        return \"baby\";\n" +
+                "        return \"hello world\";\n" +
                 "    }\n" +
                 "}\n";
         try {
